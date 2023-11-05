@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'package:appmovie/models/index.dart';
 import 'package:appmovie/screens/video_screen.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -9,19 +13,53 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<Movie> movie = [];
+
+  final String baseUrl = 'http://127.0.0.1:8000/';
+
+  void _fetchDataFromTheServer() async{
+    final Dio dio = new Dio();
+
+    try {
+      var response = await dio.get("$baseUrl");
+      print(response.statusCode);
+      print(response.data);
+      var responseData = response.data as List;
+
+
+      setState(() {
+        movie = responseData.map((e) => Movie.fromJson(e)).toList();
+      });
+      
+    }on DioError catch (e) {
+      print(e);
+    }
+  }
+
+  // late Movies movies;
+  // late String title;
+  // bool isLoading = false;
+
+  // List item = [];
+
+  // @override
+  // void initState(){
+  //   super.initState();
+  //   fethMovie();
+  // }
+
+
   
   List<String> items = [
-    "Home",
-    "Explore",
-    "Search",
-    "Feed",
-    "Posts",
-    "Activity",
-    "Setting",
-    "Profile",
-    "Profile",
-    "Profile",
-    "Profile",
+    "All",
+    "Action",
+    "Adventure",
+    "Sci-Fi",
+    "War",
+    "Drama",
+    "Thiller",
+    "Comedy",
+
 
 
   ];
@@ -37,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Icons.settings,
     Icons.person
   ];
+
   int current = 0;
   PageController pageController = PageController();
   @override
@@ -123,12 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               height: 600,
               child: PageView.builder(
-                itemCount: icons.length,
+                itemCount: 10,
                 controller: pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   return ListView.builder(
-                    itemCount: items.length, // เปลี่ยนจำนวนรายการตามที่คุณต้องการ
+                    itemCount: 8, // เปลี่ยนจำนวนรายการตามที่คุณต้องการ
                     itemBuilder: (context, itemIndex) {
                       return Container(
                         height: 450, // กำหนดความสูงของรายการในแต่ละแท็บ
@@ -171,4 +210,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+
+  // Future<void> fethMovie() async{
+  //   final url = 'https://jsonplaceholder.typicode.com/todos';
+  //   final uri = Uri.parse(url);
+  //   final response = await http.get(uri);
+  //   print(response.statusCode);
+  //   if(response.statusCode == 200 ){
+  //     final json = jsonDecode(response.body) as Map;
+  //     final result = json['item'] as List;
+  //     setState(() {
+  //       item = result;
+  //     });
+  //   }else{
+
+  //   }
+
+  // }
 }
+

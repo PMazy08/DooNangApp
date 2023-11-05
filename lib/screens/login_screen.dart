@@ -1,3 +1,4 @@
+import 'package:appmovie/screens/dashboard_screen.dart';
 import 'package:appmovie/screens/home_screen.dart';
 import 'package:appmovie/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
@@ -39,8 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Text(
           "DooNang",
           style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-        ),
-        Text("Enter your credentials to login"),
+        )
       ],
     );
   }
@@ -86,7 +86,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
             debugPrint(username);
             debugPrint(password);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+
+            if (password == "123"){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+            }
+            else{
+              Navigator.push(context, MaterialPageRoute(builder: (context) => DashboardScreen()));
+            }
             // Here you can use the 'username' and 'password' variables
             // to perform your login logic, make API requests, etc.
           },
