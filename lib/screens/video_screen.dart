@@ -1,8 +1,12 @@
+import 'package:appmovie/Services.dart';
+import 'package:appmovie/models/index.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoScreen extends StatefulWidget {
-  const VideoScreen({Key? key}) : super(key: key);
+  final Movie movie;
+
+  const VideoScreen({Key? key, required this.movie}) : super(key: key);
 
   @override
   _VideoScreenState createState() => _VideoScreenState();
@@ -11,37 +15,38 @@ class VideoScreen extends StatefulWidget {
 class _VideoScreenState extends State<VideoScreen> {
   late YoutubePlayerController _controller;
   final TextEditingController _commentController = TextEditingController();
-
+  late Reviews reviews;
+  bool isLoading = true;
   // Sample list of comments
   List<String> comments = [
     'Comment 1',
     'Comment 2',
     'Comment 3',
-    'Comment 1',
-    'Comment 2',
-    'Comment 3',
-    'Comment 1',
-    'Comment 2',
-    'Comment 3',
-    'Comment 1',
-    'Comment 2',
-    'Comment 3',
-    'Comment 1',
-    'Comment 2',
-    'Comment 3',
+  
     // Add more comments as needed
   ];
 
   @override
   void initState() {
+    final id = widget.movie.movieId;
     super.initState();
+    isLoading = true;
+    reviews = Reviews();
     _controller = YoutubePlayerController(
-      initialVideoId: 'shW9i6k8cB0',
+      initialVideoId: '${widget.movie.videoLink}',
       flags: YoutubePlayerFlags(
         autoPlay: true,
         mute: false,
       ),
     );
+
+
+    Services.getReviews(id).then((reviewaFromServer){
+      setState(() {
+        reviews = reviewaFromServer;
+        isLoading = false;
+      });
+    });
   }
 
   void _submitComment() {
@@ -51,7 +56,6 @@ class _VideoScreenState extends State<VideoScreen> {
 
     // Clear the comment input field
     _commentController.clear();
-
     // Update the list of comments with the new comment
     setState(() {
       comments.add(comment);
@@ -63,7 +67,7 @@ class _VideoScreenState extends State<VideoScreen> {
     return Scaffold(
       backgroundColor: Colors.purple[50],
       appBar: AppBar(
-        title: Text('Name'),
+        title: Text(widget.movie.name_movie),
         backgroundColor: Colors.purple,
       ),
       body: Column(
@@ -75,11 +79,11 @@ class _VideoScreenState extends State<VideoScreen> {
           // List of comments using ListView.builder
           Expanded(
             child: ListView.builder(
-              itemCount: comments.length,
+              itemCount: reviews.reviews == null ? 0:reviews.reviews.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(comments[index]),
-                  subtitle: Text('Additional text goes here'), // Add your additional text
+                  // title: Text(reviews.reviews[index].userId),
+                  subtitle: Text("${reviews.reviews[index].comment}"), // Add your additional text
                 );
               },
             ),

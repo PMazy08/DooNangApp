@@ -1,9 +1,9 @@
 import 'package:appmovie/Services.dart';
 import 'package:appmovie/models/movies.dart';
-import 'package:appmovie/models/users.dart';
 import 'package:appmovie/screens/addmovie_screen.dart';
 import 'package:appmovie/screens/editmovie_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -14,34 +14,30 @@ class DashboardScreen extends StatefulWidget {
 
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late Users users;
-  late String title;
-  bool isLoading = false;
+  bool isLoading = true;
+  late Movies movies;
+
 
   @override
   void initState() {
-    
     super.initState();
-    title = 'Loading users...';
-    users = Users();
     isLoading = true;
+    movies = Movies();
 
-    Services.getUsers().then((usersFromServer) {
+    Services.getMovies().then((moviesFromServer){
       setState(() {
-        users = usersFromServer;
-        // title = widget.title;
+        movies = moviesFromServer;
         isLoading = false;
       });
     });
   }
 
-  
 
   Widget list(){
   return Expanded(
     child: ListView.builder(
       
-      itemCount: 10,
+      itemCount: movies.movies == null ? 0 : movies.movies.length,
       itemBuilder: (BuildContext context, int index) {
         return row(context,index);
       })
@@ -51,16 +47,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   
   Widget row(BuildContext context, int index) {
     return Card(
-      child: Padding(
+      child:isLoading ? const Center(child: CircularProgressIndicator(),)
+        :Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             ListTile(
-            leading: Image.network('https://i.pinimg.com/236x/bf/d0/f1/bfd0f1e1e2e447c73c88750d49b941d0.jpg'),
-            title: Text("The Kingkong"),
-            subtitle: Text("Action"),
+            leading: Image.network('${movies.movies[index].pic_movie}'),
+            title: Text("${movies.movies[index].name_movie}"),
+            subtitle: Text("${movies.movies[index].genre}"),
             trailing: PopupMenuButton<String>(
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
@@ -78,7 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (value == 'edit') {
                   Navigator.push(context,
                     MaterialPageRoute(
-                      builder: (context) => EditMovieScreen(),
+                      builder: (context) => EditMovieScreen(movie:movies!.movies[index],),
                     ),
                   );
                 } else if (value == 'delete') {
@@ -99,7 +96,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Text('Ok',style: TextStyle(color: Colors.red)),
                             onPressed: () {
                               // ทำงานที่ต้องการเมื่อกดตกลง
-                              Navigator.of(context).pop(); // ปิด dialog
+                              final id = movies.movies[index].movieId;
+                              deleteById(id);
+                              Navigator.of(context).pop();
+                              
+                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen())); // ปิด dialog
                             },
                           ),
                         ],
@@ -147,6 +148,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Icon(Icons.add), // You can change the icon as needed.
       ), 
     );
+  }
+
+  Future<void> deleteById(num id) async{
+     final url = 'http://192.168.1.67:8000/delete_movie/$id';
+    final uri = Uri.parse(url);
+    final response = await http.delete(uri);
+    print(response.statusCode);
   }
 }
 

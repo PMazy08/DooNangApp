@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:appmovie/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -102,8 +105,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       final confirmPassword = confirmPasswordController.text;
 
                       if (password == confirmPassword) {
-                        debugPrint(username);
-                        // Passwords match, proceed with registration
+                        submitDdata();
                       } else {
                         showDialog(
                           context: context,
@@ -155,4 +157,49 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
+
+  Future<void> submitDdata() async{
+    final name = usernameController.text;
+    final pwd = passwordController.text;
+    final body =    {
+        "pass": pwd,
+        "username": name
+    };
+
+    final url = 'http://192.168.1.67:8000/insert/user';
+    final uri = Uri.parse(url);
+    final response = await http.post(
+      uri,
+      body: jsonEncode(body),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if(response.statusCode == 201){
+      print("Succes");
+      // showSussSMG("Succes");
+      Navigator.pop(context); 
+    }
+    else{
+      print("Faild");
+
+      showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Faild"),
+          content: Text("User Name มีคนใช้แล้ว"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+    }
+  }
 }
+

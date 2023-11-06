@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'package:appmovie/Services.dart';
+import 'package:appmovie/models/index.dart';
 import 'package:appmovie/screens/dashboard_screen.dart';
 import 'package:appmovie/screens/home_screen.dart';
 import 'package:appmovie/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -10,9 +14,28 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
+
+
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  late User user;
+  // List item = [];
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    Services.getUser("Admit").then((userFromServer){
+      setState(() {
+        user = userFromServer;
+      });
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +103,11 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 10),
         ElevatedButton(
           onPressed: () {
-
+            // debugPrint('${user.username}');
             final username = usernameController.text;
             final password = passwordController.text;
 
-            debugPrint(username);
-            debugPrint(password);
+            // fethMovie(username);
 
             if (password == "123"){
               Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -93,8 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
             else{
               Navigator.push(context, MaterialPageRoute(builder: (context) => DashboardScreen()));
             }
-            // Here you can use the 'username' and 'password' variables
-            // to perform your login logic, make API requests, etc.
+
           },
           style: ElevatedButton.styleFrom(
             shape: const StadiumBorder(),
@@ -127,4 +148,24 @@ class _LoginScreenState extends State<LoginScreen> {
       ],
     );
   }
+
+
+
+
+  //   Future<void> fethMovie(String username) async{
+  //   final url = 'http://192.168.1.67:8000/search_user/$username';
+  //   final uri = Uri.parse(url);
+  //   final response = await http.get(uri);
+  //   print(response.statusCode);
+  //   if(response.statusCode == 200 ){
+  //     final json = jsonDecode(response.body) as Map;
+  //     final result = json['item'] as List;
+  //     setState(() {
+  //       item = result;
+  //     });
+  //   }else{
+
+  //   }
+
+  // }
 }

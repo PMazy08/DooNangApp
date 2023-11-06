@@ -1,4 +1,9 @@
+export 'genre.dart' ; 
+export 'genres.dart' ; 
 export 'movie.dart' ; 
 export 'movies.dart' ; 
+export 'rate.dart' ; 
+export 'rates.dart' ; 
+export 'review.dart' ; 
+export 'reviews.dart' ; 
 export 'user.dart' ; 
-export 'users.dart' ; 

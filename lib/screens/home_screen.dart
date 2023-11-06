@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'package:appmovie/Services.dart';
 import 'package:appmovie/models/index.dart';
 import 'package:appmovie/screens/video_screen.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,68 +13,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Movie> movie = [];
+  bool isLoading = true;
+  late Movies movies;
+  late Genres genres;
 
-  final String baseUrl = 'http://127.0.0.1:8000/';
+  @override
+  void initState() {
+    super.initState();
+    isLoading = true;
+    movies = Movies();
+    genres = Genres();
 
-  void _fetchDataFromTheServer() async{
-    final Dio dio = new Dio();
-
-    try {
-      var response = await dio.get("$baseUrl");
-      print(response.statusCode);
-      print(response.data);
-      var responseData = response.data as List;
-
-
+    Services.getMovies().then((moviesFromServer){
       setState(() {
-        movie = responseData.map((e) => Movie.fromJson(e)).toList();
+        movies = moviesFromServer;
+        isLoading = false;
       });
-      
-    }on DioError catch (e) {
-      print(e);
-    }
+    });
+    Services.getGenres().then((genreFromServer){
+      setState(() {
+        genres = genreFromServer;
+        isLoading = false;
+      });
+    });
   }
-
-  // late Movies movies;
-  // late String title;
-  // bool isLoading = false;
-
-  // List item = [];
-
-  // @override
-  // void initState(){
-  //   super.initState();
-  //   fethMovie();
-  // }
-
-
-  
-  List<String> items = [
-    "All",
-    "Action",
-    "Adventure",
-    "Sci-Fi",
-    "War",
-    "Drama",
-    "Thiller",
-    "Comedy",
-
-
-
-  ];
-
-  /// List of body icon
-  List<IconData> icons = [
-    Icons.home,
-    Icons.explore,
-    Icons.search,
-    Icons.feed,
-    Icons.post_add,
-    Icons.local_activity,
-    Icons.settings,
-    Icons.person
-  ];
 
   int current = 0;
   PageController pageController = PageController();
@@ -97,7 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
         width: double.infinity,
         height: double.infinity,
         margin: const EdgeInsets.all(5),
-        child: Column(
+        child:isLoading ? const Center(child: CircularProgressIndicator(),)
+        :Column(
           children: [
             /// Tab Bar
             SizedBox(
@@ -105,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 50,
               child: ListView.builder(
                   physics: const BouncingScrollPhysics(),
-                  itemCount: items.length,
+                  itemCount: genres.genres == null ? 0 : genres.genres.length,
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (ctx, index) {
                     return Column(
@@ -144,8 +107,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    items[index],
+                                    '${genres.genres[index].name_genre}',
                                   ),
+                                
                                 ],
                               ),
                             ),
@@ -162,12 +126,12 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               height: 600,
               child: PageView.builder(
-                itemCount: 10,
+                itemCount: genres.genres == null ? 0 : genres.genres.length,
                 controller: pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   return ListView.builder(
-                    itemCount: 8, // เปลี่ยนจำนวนรายการตามที่คุณต้องการ
+                    itemCount: movies.movies == null ? 0 : movies.movies.length, // เปลี่ยนจำนวนรายการตามที่คุณต้องการ
                     itemBuilder: (context, itemIndex) {
                       return Container(
                         height: 450, // กำหนดความสูงของรายการในแต่ละแท็บ
@@ -175,25 +139,37 @@ class _HomeScreenState extends State<HomeScreen> {
                           margin: EdgeInsets.all(10),
                           child: GestureDetector(
                             onTap: () {
-                              // Navigate to a new page here, e.g., using MaterialPageRoute.
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => VideoScreen()), // Replace YourNewPage with the page you want to navigate to.
+                                Navigator.push(context,
+                                MaterialPageRoute(
+                                  builder: (context) => VideoScreen(movie:movies!.movies[itemIndex],),
+                                ),
                               );
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.network(
-                                  'https://i.pinimg.com/236x/bf/d0/f1/bfd0f1e1e2e447c73c88750d49b941d0.jpg'
+                                  '${movies.movies[itemIndex].pic_movie}',
+                                width: 200, 
                                 ),
                                 const SizedBox(height: 15),
                                 Text(
-                                  "${items[index]} Item $itemIndex",
+                                  "${movies.movies[itemIndex].name_movie}",
+                                  // "${movies.movies[1].name_movie}",
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                ),
+                                SizedBox(width: 8), // Add spacing between the two texts
+                                Text(
+                                  "ประเภท: ${movies.movies[itemIndex].genre}",
+                                  style: TextStyle(color: const Color.fromARGB(255, 90, 90, 90), fontWeight: FontWeight.normal),
+                                ),
+                                SizedBox(width: 8), // Add spacing between the two texts
+                                Text(
+                                  "เรท: ${movies.movies[itemIndex].rate}",
+                                  style: TextStyle(color: const Color.fromARGB(255, 90, 90, 90), fontWeight: FontWeight.normal),
                                 ),
                               ],
                             ),
@@ -210,23 +186,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-
-  // Future<void> fethMovie() async{
-  //   final url = 'https://jsonplaceholder.typicode.com/todos';
-  //   final uri = Uri.parse(url);
-  //   final response = await http.get(uri);
-  //   print(response.statusCode);
-  //   if(response.statusCode == 200 ){
-  //     final json = jsonDecode(response.body) as Map;
-  //     final result = json['item'] as List;
-  //     setState(() {
-  //       item = result;
-  //     });
-  //   }else{
-
-  //   }
-
-  // }
 }
 
